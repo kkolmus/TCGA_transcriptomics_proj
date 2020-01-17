@@ -66,7 +66,7 @@ rm(samplesDown)
 flog.debug("Download, normalize, filter and perform differential gene expression analysis")
 
 DEGanalysis <- function(stages, title,
-                        UP = 0.6, DOWN = 0.6, FDR_cutoff = 0.05,
+                        UP = 0.6, DOWN = -0.6, FDR_cutoff = 0.05,
                         PreProc_cor.cut = 0.6, 
                         Norm_method = "gcContent", 
                         Filt_method = "quantile", 
@@ -208,7 +208,7 @@ flog.debug("Perform analysis for the late stages of carcinogenesis")
 SampleNT_Stage_final <- c()
 SampleTP_Stage_final <- c()
 
-DEGanalysis(stages = c("Stage III", "Stage IV"), title = "Stages III and IV")
+DEGanalysis(stages = c("Stage III", "Stage IV"), title = "Stage III and IV")
 
 SampleNT_Stage_final <- c()
 SampleTP_Stage_final <- c()
