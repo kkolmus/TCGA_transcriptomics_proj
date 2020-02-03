@@ -14,8 +14,6 @@ suppressPackageStartupMessages({
   library(stringr)
   library(ggplot2)
   library(ggrepel)
-  library(ComplexHeatmap)
-  library(circlize)
 })
 
 flog.threshold(DEBUG)
@@ -37,10 +35,11 @@ for (f in file.list) {
 Pattern <- grep("DGE_", names(.GlobalEnv), value = TRUE)
 list.dataDEGs <- do.call("list", mget(Pattern))
 
-GOI <- c("insert pool of genes")
+# GOI <- c("insert pool of genes")
+GOI <- readRDS(file.path(proj.dir, "GOI.RDS"))
 
-dataDEGs <- DGE_Earlystages
-# dataDEGs <- DGE_Latestages
+# dataDEGs <- DGE_Earlystages
+dataDEGs <- DGE_Latestages
 
 GOI_filtered <- filter(dataDEGs, dataDEGs$Symbol %in% GOI)
 vp <- ggplot(data = dataDEGs,
@@ -50,8 +49,10 @@ vp <- ggplot(data = dataDEGs,
   scale_color_manual(values = c("dodgerblue", "gold", "deeppink2")) +
   geom_point(alpha = 0.4, size = 1.0) + xlim(c(-3.5, 3.5)) + ylim(c(0, 10)) +
   labs(color = "Expression pattern") +
+  theme(text = element_text(size = 14),
+        axis.text.x = element_text(angle = 0, hjust = 1)) +
   geom_point(data = GOI_filtered, colour = "black") +
-  ggtitle(paste0("COAD and READ datasets - Early stages - Tumor vs. Normal")) +
+  # ggtitle(paste0("COAD and READ datasets - Early stages - Tumor vs. Normal")) +
   theme(plot.title = element_text(face = "bold")) +
   xlab("log2FoldChange") + ylab("-log10(FDR)") +
   theme(plot.title = element_text(hjust = 0.5))

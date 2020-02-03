@@ -1,5 +1,7 @@
 rm(list = ls())
 
+# read chapter 3.15
+
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # 
@@ -22,6 +24,7 @@ flog.threshold(DEBUG)
 
 flog.debug("Set working directory and load required data")
 proj.dir = "~/Desktop/HT projects/TCGA_transcriptomics_proj"
+spec.dir = "data_matchedStages"
 endocytic_genes <- unique(read_xls(file.path(proj.dir, "LP_17842 G-CUSTOM-214454.xls")))
 
 # this input derives from the getExpDataMatchedStages.R script
@@ -30,8 +33,8 @@ endocytic_genes <- unique(read_xls(file.path(proj.dir, "LP_17842 G-CUSTOM-214454
 
 patients_earlyStage <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_Earlystages.RDS"))
 patients_lateStage <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_Latestages.RDS"))
-patients_earlyStageIandII <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_StageIandII.RDS"))
-patients_earlyStageIIIandIV <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_StagesIIIandIV.RDS"))
+# patients_earlyStageIandII <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_StageIandII.RDS"))
+# patients_earlyStageIIIandIV <- readRDS(file.path(proj.dir, "data_matchedStages", "patients_StagesIIIandIV.RDS"))
 
 # this input derives from the getExpData.R script
 # each dataset contains expression data (counts) 
@@ -82,7 +85,19 @@ fontsize = 0.6
 
 
 flog.debug("Draw heatmap")
+
+# stage_early <- readRDS(file.path(proj.dir, spec.dir, "stage_early_down.RDS"))
+# # print column names 
+# ha_number <- which(names(HeatmapData_input2) %in% stage_early$Symbol)
+# # heatmap annotation
+# ha = rowAnnotation(foo = anno_mark(at = ha_number, labels = stage_early$Symbol))
   
+stage_late <- readRDS(file.path(proj.dir, spec.dir, "stage_late_down.RDS"))
+# print column names
+ha_number <- which(names(HeatmapData_input2) %in% stage_late$Symbol)
+# heatmap annotation
+ha = rowAnnotation(foo = anno_mark(at = ha_number, labels = stage_late$Symbol))
+
 Heatmap(t(HeatmapData_matrix),
         cluster_columns = TRUE,
         column_names_side = "top",
@@ -97,8 +112,9 @@ Heatmap(t(HeatmapData_matrix),
         clustering_method_rows = "ward.D",
         name = "z-score",
         # column_title = "COAD and READ datasets - Early Stages - Tumor vs. Normal",
-        column_title = "COAD and READ datasets - Late Stages - Tumor vs. Normal",
+        # column_title = "COAD and READ datasets - Late Stages - Tumor vs. Normal",
         column_title_gp = gpar(fontsize = 14, fontface = "bold", fontfamily = "Arial"),
+        right_annotation = ha,
         row_title_rot = 0,
         col = colorRamp2(c(-5, 0, 5), c("blue", "white", "red")),
         row_title_gp = gpar(fontsize = 14, fontface = "bold", fontfamily = "Arial"),
@@ -156,7 +172,7 @@ Heatmap(t(HeatmapData_matrix),
         clustering_method_rows = "ward.D",
         name = "z-score",
         # column_title = "COAD and READ datasets - Early Stages - Tumor vs. Normal",
-        column_title = "COAD and READ datasets - Late Stages - Tumor vs. Normal",
+        # column_title = "COAD and READ datasets - Late Stages - Tumor vs. Normal",
         column_title_gp = gpar(fontsize = 14, fontface = "bold", fontfamily = "Arial"),
         row_title_rot = 0,
         col = colorRamp2(c(-5, 0, 5), c("blue", "white", "red")),
