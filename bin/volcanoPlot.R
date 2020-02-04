@@ -38,8 +38,11 @@ list.dataDEGs <- do.call("list", mget(Pattern))
 # GOI <- c("insert pool of genes")
 GOI <- readRDS(file.path(proj.dir, "GOI.RDS"))
 
+# which dataset do you want to use?
 # dataDEGs <- DGE_Earlystages
 dataDEGs <- DGE_Latestages
+
+flog.debug("Draw Volcano Plot")
 
 GOI_filtered <- filter(dataDEGs, dataDEGs$Symbol %in% GOI)
 vp <- ggplot(data = dataDEGs,
@@ -59,3 +62,7 @@ vp <- ggplot(data = dataDEGs,
 
 vp + geom_text_repel(data = GOI_filtered,
                      aes(label = GOI_filtered$Symbol), colour = "black", size = 4)
+
+
+flog.debug("SessionInfo")
+sessionInfo()
