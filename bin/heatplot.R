@@ -51,12 +51,13 @@ Patients <- do.call("list", mget(Pattern))
 
 flog.debug("Define dataset for the vizualization")
 
-# p = patients_earlyStage
-p = patients_lateStage
+# p = as.data.frame(patients_earlyStage)
+p = as.data.frame(patients_lateStage)
 
 
 flog.debug("Prepare heatmap input for endocytic genes")
 
+p = rownames_to_column(p, "Symbol")
 HeatmapData <- dplyr::mutate_at(p, vars(-c(Symbol)), funs(log2(.+1)))
 Av <- apply(HeatmapData[, c(2:ncol(HeatmapData))], 1, mean)
 StDev <- apply(HeatmapData[, c(2:ncol(HeatmapData))], 1, sd)
@@ -69,7 +70,7 @@ colnames(HeatmapData_input2) <- Gene_Symbols
 
 HeatmapData_input2 <- rownames_to_column(HeatmapData_input2, var = "barcodes")
 
-HeatmapData_input2$status <- with(HeatmapData_input2,
+HeatmapData_input2$Status <- with(HeatmapData_input2,
                                    ifelse(test = grepl("-01[A|B]-", HeatmapData_input2$barcodes),
                                           yes = "Tumor", no = "Normal"))
 
@@ -79,26 +80,32 @@ HeatmapData_matrix <- as.matrix(HeatmapData_input2[, c(3:ncol(HeatmapData_input2
 
 sample.colors = c("gold", "black")
 names(sample.colors) = c("Normal", "Tumor")
-status_info = data.frame(status = HeatmapData_input2$status)
+status_info = data.frame(Status = HeatmapData_input2$Status)
 
 fontsize = 0.6
 
 
 flog.debug("Draw heatmap")
 
+# stage_early <- readRDS(file.path(proj.dir, spec.dir, "stage_early_up.RDS"))
 # stage_early <- readRDS(file.path(proj.dir, spec.dir, "stage_early_down.RDS"))
-# # print column names 
+# # stage_early <- readRDS(file.path(proj.dir, spec.dir, "stage_early.RDS"))
+# flog.debug("Print column names")
 # ha_number <- which(names(HeatmapData_input2) %in% stage_early$Symbol)
-# # heatmap annotation
+# flog.debug("Print heatmap annotation")
 # ha = rowAnnotation(foo = anno_mark(at = ha_number, labels = stage_early$Symbol))
-  
+
+# stage_late <- readRDS(file.path(proj.dir, spec.dir, "stage_late_up.RDS"))
 stage_late <- readRDS(file.path(proj.dir, spec.dir, "stage_late_down.RDS"))
-# print column names
+# stage_late <- readRDS(file.path(proj.dir, spec.dir, "stage_late.RDS"))
+flog.debug("Print column names")
 ha_number <- which(names(HeatmapData_input2) %in% stage_late$Symbol)
-# heatmap annotation
+flog.debug("Print heatmap annotation")
 ha = rowAnnotation(foo = anno_mark(at = ha_number, labels = stage_late$Symbol))
 
-Heatmap(t(HeatmapData_matrix),
+
+heatmap_final <-
+  Heatmap(t(HeatmapData_matrix),
         cluster_columns = TRUE,
         column_names_side = "top",
         column_dend_side = "top",
@@ -119,10 +126,24 @@ Heatmap(t(HeatmapData_matrix),
         col = colorRamp2(c(-5, 0, 5), c("blue", "white", "red")),
         row_title_gp = gpar(fontsize = 14, fontface = "bold", fontfamily = "Arial"),
         top_annotation = HeatmapAnnotation(
-          status = status_info$status,
-          col = list(status = c("Tumor" = "gold", "Normal" = "black")),
+          Status = status_info$Status,
+          col = list(Status = c("Tumor" = "gold", "Normal" = "black")),
           show_legend = TRUE,
-          show_annotation_name = FALSE))
+          show_annotation_name = FALSE,
+          annotation_legend_param = list(title_gp = gpar(fontsize = 14, fontface = "bold"),
+                                         legend_direction = "horizontal",
+                                         title_position = "topcenter")
+          # annotation_name_side = "left"
+          ),
+        heatmap_legend_param = list(
+          title = "z-score", 
+          title_gp = gpar(fontsize = 14, fontface = "bold"),
+          title_position = "leftcenter-rot",
+          direction = "vertical"
+        ))
+
+draw(heatmap_final, heatmap_legend_side = "right", 
+     annotation_legend_side = "top", merge_legend = TRUE)
 
 
 flog.debug("Prepare heatmap input for ESCRT-I genes")
@@ -141,7 +162,7 @@ colnames(HeatmapData_input2) <- Gene_Symbols
 
 HeatmapData_input2 <- rownames_to_column(HeatmapData_input2, var = "barcodes")
 
-HeatmapData_input2$status <- with(HeatmapData_input2,
+HeatmapData_input2$Status <- with(HeatmapData_input2,
                                   ifelse(test = grepl("-01[A|B]-", HeatmapData_input2$barcodes),
                                          yes = "Tumor", no = "Normal"))
 
@@ -151,7 +172,7 @@ HeatmapData_matrix <- as.matrix(HeatmapData_input2[, c(3:ncol(HeatmapData_input2
 
 sample.colors = c("gold", "black")
 names(sample.colors) = c("Normal", "Tumor")
-status_info = data.frame(status = HeatmapData_input2$status)
+status_info = data.frame(Status = HeatmapData_input2$Status)
 
 fontsize = 0.6
 
@@ -178,7 +199,7 @@ Heatmap(t(HeatmapData_matrix),
         col = colorRamp2(c(-5, 0, 5), c("blue", "white", "red")),
         row_title_gp = gpar(fontsize = 14, fontface = "bold", fontfamily = "Arial"),
         top_annotation = HeatmapAnnotation(
-          status = status_info$status,
-          col = list(status = c("Tumor" = "gold", "Normal" = "black")),
+          Status = status_info$Status,
+          col = list(Status = c("Tumor" = "gold", "Normal" = "black")),
           show_legend = TRUE,
           show_annotation_name = FALSE))

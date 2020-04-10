@@ -66,7 +66,7 @@ rm(samplesDown)
 flog.debug("Download, normalize, filter and perform differential gene expression analysis")
 
 DEGanalysis <- function(stages, title,
-                        UP = 0.6, DOWN = -0.6, FDR_cutoff = 0.05,
+                        UP = 0.6, DOWN = -0.6, FDR_cutoff = 0.05, reads = 50,
                         PreProc_cor.cut = 0.6, 
                         Norm_method = "gcContent", 
                         Filt_method = "quantile", 
@@ -152,6 +152,12 @@ DEGanalysis <- function(stages, title,
   dataFilt_transposed_NT <- t(dataFilt_transposed_NT)
   dataFilt_transposed_NT <- as.data.frame(dataFilt_transposed_NT)
   dataFilt_transposed_NT <- rownames_to_column(dataFilt_transposed_NT, "Symbol")
+  # select only genes, which have at least 10 counts in all patients
+  filter_NT <- (rowSums(dataFilt_transposed_NT[,2:ncol(dataFilt_transposed_NT)]) >= ((ncol(dataFilt_transposed_NT)-1)*reads))
+  dataFilt_transposed_NT$filter <- filter_NT
+  dataFilt_transposed_NT <- filter(dataFilt_transposed_NT, dataFilt_transposed_NT$filter == TRUE)
+  dataFilt_transposed_NT <- dataFilt_transposed_NT[, -ncol(dataFilt_transposed_NT)]
+  
   # tumour tissue
   dataFilt_transposed_TP <- filter(dataFilt_transposed, 
                                    dataFilt_transposed$barcode_id %in% F_SampleTP)
@@ -159,16 +165,23 @@ DEGanalysis <- function(stages, title,
   dataFilt_transposed_TP <- t(dataFilt_transposed_TP)
   dataFilt_transposed_TP <- as.data.frame(dataFilt_transposed_TP)
   dataFilt_transposed_TP <- rownames_to_column(dataFilt_transposed_TP, "Symbol")
+  # select only genes, which have at least 10 counts in all patients
+  filter_TP <- rowSums(dataFilt_transposed_TP[,2:ncol(dataFilt_transposed_TP)]) >= ((ncol(dataFilt_transposed_TP)-1)*reads)
+  dataFilt_transposed_TP$filter <- filter_TP
+  dataFilt_transposed_TP <- filter(dataFilt_transposed_TP, dataFilt_transposed_TP$filter == TRUE)
+  dataFilt_transposed_TP <- dataFilt_transposed_TP[, -ncol(dataFilt_transposed_TP)]
+  
   # combine dataframes
   flog.debug("Prepare dataframe with filtered data for patients included in the analysis")
-  patients <<- assign(paste0("dataFilt_patients_", title), 
-                      merge(dataFilt_transposed_NT, 
-                            dataFilt_transposed_TP, by = "Symbol"))
+  patients <- assign(paste0("dataFilt_patients_", title), 
+                     merge(dataFilt_transposed_NT, 
+                           dataFilt_transposed_TP, by = "Symbol"))
+  patients <- as.matrix(column_to_rownames(patients, "Symbol"))
   saveRDS(patients,
           file.path(proj.dir, "data_matchedStages", paste0("patients_", title,".RDS")))
   # Differential gene expression analysis 
   flog.debug("Perform differential gene expression analysis")
-  dataDEGs <- TCGAanalyze_DEA(mat1 = dataFilt[,F_SampleNT], mat2 = dataFilt[,F_SampleTP],
+  dataDEGs <- TCGAanalyze_DEA(mat1 = patients[,F_SampleNT], mat2 = patients[,F_SampleTP],
                               Cond1type = "Normal", Cond2type = "Tumor",
                               batch.factors = DEA_batch.factor,
                               fdr.cut = 1, logFC.cut = 0,

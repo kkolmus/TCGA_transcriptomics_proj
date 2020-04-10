@@ -30,10 +30,14 @@ draw.2.Venn <- function (area1, area2, intersection,
                      area2 = length(area2),
                      cross.area = length(intersection),
                      # c(paste0(stage1), paste0(stage2)), 
-                     fill = c("dodgerblue1", "goldenrod1"),
+                     fill = c("dodgerblue1", "deeppink2"),
                      fontfamily = "Arial", cat.fontfamily = "Arial",
-                     cex = 4, cat.cex = 4, cat.pos = c(40, 210),
-                     cat.dist = .05, scaled = TRUE) 
+                     cex = 0, # 4
+                     # cex = 4,
+                     # cat.cex = 4, #
+                     # cat.pos = c(30, 215), #
+                     # cat.dist = .05, #
+                     scaled = TRUE)
 }
 
 ############
@@ -64,26 +68,32 @@ late <- filter(DGE_Latestages, DGE_Latestages$Symbol %in% endocytic_genes$`Gene 
 rm(endocytic_genes)
 
 flog.debug("Genes downreg in early stages of cancer progression")
-# early_up = filter(early, early$Threshold == "Upregulated")
+early_up = filter(early, early$Threshold == "Upregulated")
 early_down = filter(early, early$Threshold == "Downregulated")
+early = rbind(early_up, early_down)
+saveRDS(early, file.path(proj.dir, spec.dir, "stage_early.RDS"))
 saveRDS(early_down, file.path(proj.dir, spec.dir, "stage_early_down.RDS"))
+saveRDS(early_up, file.path(proj.dir, spec.dir, "stage_early_up.RDS"))
 
 flog.debug("Genes downreg in late stages of cancer progression")
-# late_up = filter(late, late$Threshold == "Upregulated")
+late_up = filter(late, late$Threshold == "Upregulated")
 late_down = filter(late, late$Threshold == "Downregulated")
+late = rbind(late_up, late_down)
+saveRDS(late, file.path(proj.dir, spec.dir, "stage_late.RDS"))
 saveRDS(late_down, file.path(proj.dir, spec.dir, "stage_late_down.RDS"))
+saveRDS(late_up, file.path(proj.dir, spec.dir, "stage_late_up.RDS"))
 
 # rm(early, late)
 
 flog.debug("Genes at the union and intersection between stages")
-intersect_down <- intersect(early_down$Symbol, late_down$Symbol)
-unique_4_early <- setdiff(early_down$Symbol, intersect_down)
+intersect <- intersect(early$Symbol, late$Symbol)
+unique_4_early <- setdiff(early$Symbol, intersect)
 cat("number of unique genes in early stages: ", length(unique_4_early))
-unique_4_late <- setdiff(late_down$Symbol, intersect_down)
+unique_4_late <- setdiff(late$Symbol, intersect)
 cat("number of unique genes in advanced stages: ", length(unique_4_late))
 
 flog.debug("Venn diagram")
-draw.2.Venn(late_down$Symbol, early_down$Symbol, intersect_down)
+draw.2.Venn(late$Symbol, early$Symbol, intersect)
 
 
 ###################

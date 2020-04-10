@@ -37,10 +37,11 @@ list.dataDEGs <- do.call("list", mget(Pattern))
 
 # GOI <- c("insert pool of genes")
 GOI <- readRDS(file.path(proj.dir, "GOI.RDS"))
+GOI <- c("TSG101", "VPS28", "VPS37A", "VPS37B", "VPS37C", "VPS37D")
 
 # which dataset do you want to use?
-# dataDEGs <- DGE_Earlystages
-dataDEGs <- DGE_Latestages
+dataDEGs <- DGE_Earlystages
+# dataDEGs <- DGE_Latestages
 
 flog.debug("Draw Volcano Plot")
 
@@ -52,16 +53,20 @@ vp <- ggplot(data = dataDEGs,
   scale_color_manual(values = c("dodgerblue", "gold", "deeppink2")) +
   geom_point(alpha = 0.4, size = 1.0) + xlim(c(-3.5, 3.5)) + ylim(c(0, 10)) +
   labs(color = "Expression pattern") +
+  theme_bw() +
   theme(text = element_text(size = 14),
-        axis.text.x = element_text(angle = 0, hjust = 1)) +
+        axis.text.x = element_text(angle = 0, hjust = 1, size = 14)) +
   geom_point(data = GOI_filtered, colour = "black") +
   # ggtitle(paste0("COAD and READ datasets - Early stages - Tumor vs. Normal")) +
-  theme(plot.title = element_text(face = "bold")) +
+  # theme(plot.title = element_text(face = "bold")) +
   xlab("log2FoldChange") + ylab("-log10(FDR)") +
+  theme(legend.position = "bottom") +
+  theme(legend.text = element_text(size = 14)) +
   theme(plot.title = element_text(hjust = 0.5))
 
-vp + geom_text_repel(data = GOI_filtered,
-                     aes(label = GOI_filtered$Symbol), colour = "black", size = 4)
+vp + 
+  geom_text_repel(data = GOI_filtered,
+                  aes(label = GOI_filtered$Symbol), colour = "black", size = 5)
 
 
 flog.debug("SessionInfo")
